@@ -53,7 +53,7 @@ C# / WPF / .NET 10, 설치·업데이트는 [Velopack](https://velopack.io).
 # 빌드
 dotnet build WorkspaceLauncher
 
-# 새 버전 배포 — 버전을 올리고 태그를 push 하면 GitHub Actions 가 설치 파일을 만들어 Release 로 게시
+# 새 버전 배포 — 버전 반영·태그·빌드·설치 패키지 생성·GitHub Release 업로드까지 한 번에 (gh 로그인 필요)
 .\release.ps1 1.0.1
 ```
 
