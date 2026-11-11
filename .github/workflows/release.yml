@@ -1,0 +1,47 @@
+# v* 태그를 push 하면 설치 파일(WSL-win-Setup.exe)과 자동 업데이트 패키지를 만들어 GitHub Release 로 게시한다.
+# 설치된 WSL 은 이 Release 를 확인해 스스로 업데이트한다.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      REPO_URL: https://github.com/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: 버전 추출
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: 빌드 (self-contained — .NET 미설치 PC 에서도 실행)
+        run: dotnet publish WorkspaceLauncher/WorkspaceLauncher.csproj -c Release -r win-x64 --self-contained true -p:Version=${{ steps.ver.outputs.version }} -o publish
+
+      - name: vpk 설치
+        run: dotnet tool install -g vpk --version 0.0.1298
+
+      - name: 이전 릴리스 받기 (델타 업데이트 생성용)
+        continue-on-error: true
+        run: vpk download github --repoUrl ${{ env.REPO_URL }} --token ${{ secrets.GITHUB_TOKEN }} -o Releases
+
+      - name: 설치 패키지 생성
+        run: vpk pack -u WSL -v ${{ steps.ver.outputs.version }} -p publish -e WSL.exe -o Releases --packTitle "WSL - Workspace Launcher" --packAuthors grasion -i WorkspaceLauncher/Assets/app.ico
+
+      - name: GitHub Release 게시
+        run: vpk upload github --repoUrl ${{ env.REPO_URL }} --token ${{ secrets.GITHUB_TOKEN }} -o Releases --publish --releaseName "WSL v${{ steps.ver.outputs.version }}" --tag v${{ steps.ver.outputs.version }}

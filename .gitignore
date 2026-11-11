@@ -1,0 +1,9 @@
+bin/
+obj/
+publish/
+Releases/
+.vs/
+.vscode/
+*.user
+*.suo
+*_wpftmp.csproj

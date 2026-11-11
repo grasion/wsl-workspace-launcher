@@ -1,0 +1,282 @@
+<Window x:Class="WorkspaceLauncher.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:WorkspaceLauncher.Core"
+        Style="{StaticResource BaseWindow}"
+        Title="WSL — Workspace Launcher" Width="1240" Height="800" MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen" Icon="/Assets/app.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ============ Header ============ -->
+        <DockPanel Margin="20,16,20,12">
+            <Image Source="/Assets/logo.png" RenderOptions.BitmapScalingMode="HighQuality" Width="30" Height="30" Margin="0,0,10,0" VerticalAlignment="Center"/>
+            <StackPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="WSL" FontSize="19" FontWeight="Bold"/>
+                    <TextBlock Text="Workspace Launcher" FontSize="13" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" Margin="8,0,0,2"/>
+                </StackPanel>
+                <TextBlock Text="지금 화면의 창 배치를 저장하고, 원클릭으로 실행부터 배치까지 복원" Style="{StaticResource Muted}"/>
+            </StackPanel>
+            <Border DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="12,5">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🖥" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="MonitorText" Text="모니터" Foreground="{StaticResource MutedBrush}"/>
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+        <!-- ============ Body ============ -->
+        <Grid Grid.Row="1" Margin="20,0,20,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="290"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: profiles -->
+            <Border Style="{StaticResource Card}" Padding="12">
+                <DockPanel>
+                    <Button DockPanel.Dock="Top" Style="{StaticResource PrimaryButton}" Height="42" FontSize="14"
+                            Click="Capture_Click" ToolTip="지금 떠 있는 창들의 위치·크기·모니터를 읽어 새 프로필로 저장">
+                        <TextBlock Text="📸  현재 레이아웃 저장"/>
+                    </Button>
+
+                    <!-- 후원 배너 (맨 아래) -->
+                    <Border DockPanel.Dock="Bottom" CornerRadius="10" Padding="12,9" Cursor="Hand" Margin="0,10,0,0"
+                            Background="#FFF7ED" BorderBrush="#FED7AA" BorderThickness="1"
+                            MouseLeftButtonDown="CoffeeBanner_Click" ToolTip="개발자 후원 QR 코드 보기">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="☕" FontSize="20" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="개발자에게 커피 사주기" FontWeight="SemiBold" FontSize="12.5" Foreground="#9A3412"/>
+                                <TextBlock Text="클릭하여 후원 QR 보기" FontSize="11" Foreground="#C2410C" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Expander DockPanel.Dock="Bottom" Header="설정" Margin="0,10,0,0" FontWeight="SemiBold">
+                        <StackPanel Margin="4,8,0,0" TextElement.FontWeight="Normal">
+                            <CheckBox x:Name="StartWithWindowsBox" Content="Windows 시작 시 실행" Click="Settings_Changed" Margin="0,3"/>
+                            <Border x:Name="StartupProfilePanel" Visibility="Collapsed" Margin="20,2,0,6" Padding="8"
+                                    Background="{StaticResource AccentSoftBrush}" CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Text="시작 시 적용할 레이아웃" Style="{StaticResource Muted}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="StartupProfileCombo" SelectedValuePath="Key" DisplayMemberPath="Value"
+                                              SelectionChanged="Settings_Changed"/>
+                                    <DockPanel Margin="0,6,0,0">
+                                        <TextBlock Text="부팅 후 대기(초)" VerticalAlignment="Center" Style="{StaticResource Muted}"
+                                                   ToolTip="다른 시작 프로그램(메신저 등)이 먼저 뜰 시간을 준 뒤 적용"/>
+                                        <TextBox x:Name="StartupDelayBox" Width="56" HorizontalAlignment="Right" LostFocus="Settings_Changed"/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                            <CheckBox x:Name="StartMinimizedBox" Content="시작 시 트레이로 최소화" Click="Settings_Changed" Margin="0,3"/>
+                            <CheckBox x:Name="CloseToTrayBox" Content="창 닫기 시 트레이에 상주" Click="Settings_Changed" Margin="0,3"/>
+                            <TextBlock Text="모니터 구성이 바뀌면" Margin="0,8,0,3" Style="{StaticResource Muted}"/>
+                            <ComboBox x:Name="MonitorActionCombo" SelectionChanged="Settings_Changed">
+                                <ComboBoxItem Content="아무것도 안 함" Tag="None"/>
+                                <ComboBoxItem Content="맞는 프로필 알림으로 추천" Tag="Suggest"/>
+                                <ComboBoxItem Content="'자동 전환' 프로필 바로 적용" Tag="AutoApply"/>
+                            </ComboBox>
+                            <DockPanel Margin="0,8,0,0">
+                                <TextBlock Text="창 대기 시간(초)" VerticalAlignment="Center" Style="{StaticResource Muted}"/>
+                                <TextBox x:Name="TimeoutBox" Width="56" HorizontalAlignment="Right" LostFocus="Settings_Changed"/>
+                            </DockPanel>
+                            <Button Content="데이터 폴더 열기" Style="{StaticResource SmallButton}" Margin="0,10,0,0" HorizontalAlignment="Left" Click="OpenDataFolder_Click"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <TextBlock DockPanel.Dock="Top" Text="프로필" Style="{StaticResource SectionTitle}" Margin="4,16,0,6"/>
+                    <ListBox x:Name="ProfilesList" BorderThickness="0" SelectionChanged="ProfilesList_SelectionChanged"
+                             MouseDoubleClick="ProfilesList_DoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,4"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="bd" CornerRadius="8" Padding="10,8" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#F3F6FA"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                    <Setter TargetName="bd" Property="BorderBrush" Value="#BFD3FB"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding ListSubtitle}" Style="{StaticResource Muted}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" VerticalAlignment="Center" CornerRadius="9" Padding="7,2" Margin="6,0,0,0"
+                                            Background="{StaticResource SuccessSoftBrush}"
+                                            Visibility="{Binding MatchesCurrentSetup, Converter={StaticResource BoolToVis}}"
+                                            ToolTip="현재 모니터 구성과 같은 환경에서 저장된 프로필">
+                                        <TextBlock Text="현재 구성" FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: editor -->
+            <Grid Grid.Column="2">
+                <!-- Empty state -->
+                <Border x:Name="EmptyPanel" Style="{StaticResource Card}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460">
+                        <Image Source="/Assets/logo.png" RenderOptions.BitmapScalingMode="HighQuality" Width="56" Height="56" HorizontalAlignment="Center"/>
+                        <TextBlock Text="평소처럼 창을 배치한 뒤 저장하세요" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,6"/>
+                        <TextBlock Style="{StaticResource Muted}" FontSize="13" TextWrapping="Wrap" TextAlignment="Center"
+                                   Text="모니터에 프로그램·폴더·브라우저를 원하는 위치에 띄워 두고 [현재 레이아웃 저장]을 누르면, 실행 경로와 모니터 좌표가 자동으로 프로필이 됩니다. 이후 트레이 메뉴나 단축키(예: Ctrl+Alt+1)로 한 번에 복원할 수 있습니다."/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="📸  현재 레이아웃 저장" Height="40" Margin="0,18,0,0" Width="220" Click="Capture_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <Grid x:Name="EditorPanel" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Profile header -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource PrimaryButton}" Height="36" Width="100" Click="Apply_Click" ToolTip="없는 프로그램은 실행하고, 열린 창은 지정 위치로 이동">
+                                        <TextBlock Text="▶  적용"/>
+                                    </Button>
+                                    <Button Content="↻ 다시 캡처" Height="36" Margin="8,0,0,0" Click="Recapture_Click" ToolTip="현재 화면 배치로 이 프로필을 덮어쓰기 (입력한 URL·인자는 유지)"/>
+                                    <Button Content="바로가기" Height="36" Margin="8,0,0,0" Click="Shortcut_Click" ToolTip="바탕화면에 이 레이아웃을 적용하는 바로가기 만들기"/>
+                                    <Button Content="복제" Height="36" Margin="8,0,0,0" Click="Duplicate_Click"/>
+                                    <Button Content="삭제" Style="{StaticResource DangerButton}" Height="36" Margin="8,0,0,0" Click="DeleteProfile_Click"/>
+                                </StackPanel>
+                                <TextBox x:Name="ProfileNameBox" FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" Padding="2,4"
+                                         Margin="0,0,16,0" LostFocus="ProfileName_LostFocus" KeyDown="ProfileName_KeyDown" Background="Transparent"/>
+                            </DockPanel>
+                            <WrapPanel Margin="0,12,0,0">
+                                <TextBlock Text="단축키" VerticalAlignment="Center" Margin="0,0,8,0" Style="{StaticResource Muted}"/>
+                                <TextBox x:Name="HotkeyBox" Width="150" Height="28" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                                         PreviewKeyDown="HotkeyBox_PreviewKeyDown" GotFocus="HotkeyBox_GotFocus" LostFocus="HotkeyBox_LostFocus"
+                                         ToolTip="클릭 후 원하는 조합을 누르세요 (예: Ctrl+Alt+1). Backspace/Delete 로 지우기"/>
+                                <CheckBox x:Name="AutoSwitchBox" Content="이 모니터 구성이 감지되면 자동 전환" Margin="20,0,0,0" Click="AutoSwitch_Click"/>
+                                <TextBlock x:Name="ProfileMonitorText" VerticalAlignment="Center" Margin="20,0,0,0" Style="{StaticResource Muted}"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Preview -->
+                    <Border Grid.Row="2" Style="{StaticResource Card}" Padding="10">
+                        <Grid>
+                            <TextBlock Text="배치 미리보기 (현재 모니터 기준)" Style="{StaticResource Muted}" Margin="2,0,0,0"/>
+                            <Canvas x:Name="PreviewCanvas" Height="200" Margin="0,18,0,0" ClipToBounds="True" SizeChanged="PreviewCanvas_SizeChanged" Background="Transparent"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Items -->
+                    <Border Grid.Row="4" Style="{StaticResource Card}" Padding="12">
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                                <TextBlock Text="창 목록" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="+ 항목 추가" Style="{StaticResource SmallButton}" Click="AddItem_Click" Margin="0,0,6,0"/>
+                                    <Button Content="▶ 선택 항목만 적용" Style="{StaticResource SmallButton}" Click="ApplySelected_Click" Margin="0,0,6,0"/>
+                                    <Button Content="⌖ 현재 창 위치로 갱신" Style="{StaticResource SmallButton}" Click="RefreshPosition_Click" Margin="0,0,6,0"
+                                            ToolTip="선택 항목과 일치하는 열린 창을 찾아, 그 창의 현재 위치·크기로 갱신"/>
+                                    <Button Content="▲" Style="{StaticResource SmallButton}" Click="MoveUp_Click" Margin="0,0,4,0"/>
+                                    <Button Content="▼" Style="{StaticResource SmallButton}" Click="MoveDown_Click" Margin="0,0,6,0"/>
+                                    <Button Content="삭제" Style="{StaticResource SmallButton}" Foreground="{StaticResource DangerBrush}" Click="DeleteItem_Click"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <DataGrid x:Name="ItemsGrid" SelectionChanged="ItemsGrid_SelectionChanged" CellEditEnding="ItemsGrid_CellEditEnding"
+                                      FrozenColumnCount="2">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="사용" Width="42">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding Enabled, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Click="ItemCheck_Click"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="이름" Binding="{Binding Name}" Width="170"/>
+                                    <DataGridComboBoxColumn Header="유형" Width="88"
+                                                            ItemsSource="{x:Static core:KindNames.All}" SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                            SelectedValueBinding="{Binding Kind}"/>
+                                    <DataGridTextColumn Header="대상 (경로 / URL)" Binding="{Binding Target}" Width="230"/>
+                                    <DataGridTemplateColumn Header="" Width="32">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="…" Padding="4,0" FontSize="12" Click="Browse_Click" ToolTip="찾아보기"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="실행 인자" Binding="{Binding Arguments}" Width="110"/>
+                                    <DataGridTextColumn Header="프로세스" Binding="{Binding ProcessName}" Width="90"/>
+                                    <DataGridTextColumn Header="제목 포함" Binding="{Binding TitleMatch}" Width="100"/>
+                                    <DataGridTextColumn Header="모니터" Binding="{Binding MonitorIndex}" Width="52"/>
+                                    <DataGridTextColumn Header="X" Binding="{Binding X}" Width="56"/>
+                                    <DataGridTextColumn Header="Y" Binding="{Binding Y}" Width="56"/>
+                                    <DataGridTextColumn Header="너비" Binding="{Binding Width}" Width="56"/>
+                                    <DataGridTextColumn Header="높이" Binding="{Binding Height}" Width="56"/>
+                                    <DataGridComboBoxColumn Header="상태" Width="72"
+                                                            ItemsSource="{x:Static core:KindNames.States}" SelectedValuePath="Key" DisplayMemberPath="Value"
+                                                            SelectedValueBinding="{Binding State}"/>
+                                    <DataGridTemplateColumn Header="없으면 실행" Width="78">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding LaunchIfMissing, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Click="ItemCheck_Click"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="지연(ms)" Binding="{Binding DelayMs}" Width="64"/>
+                                    <DataGridTextColumn Header="열 프로그램 (브라우저/앱)" Binding="{Binding BrowserPath}" Width="180"/>
+                                    <DataGridTextColumn Header="캡처 당시 제목" Binding="{Binding CapturedTitle}" Width="220" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- ============ Status bar ============ -->
+        <Border Grid.Row="2" Margin="20,10,20,12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Muted}" Text="트레이 아이콘 우클릭 → 레이아웃 바로 적용" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="VersionText" Style="{StaticResource Muted}" Margin="14,0,8,0" VerticalAlignment="Center"/>
+                    <Button x:Name="UpdateButton" Content="업데이트 확인" Style="{StaticResource SmallButton}" Padding="8,2" Click="CheckUpdate_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="StatusText" Style="{StaticResource Muted}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Text="준비"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

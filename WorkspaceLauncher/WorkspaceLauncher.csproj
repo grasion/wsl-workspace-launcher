@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- Velopack 설치/업데이트 훅을 WPF 보다 먼저 처리하기 위해 직접 Main 사용 -->
+    <StartupObject>WorkspaceLauncher.Program</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyName>WSL</AssemblyName>
+    <RootNamespace>WorkspaceLauncher</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SatelliteResourceLanguages>ko</SatelliteResourceLanguages>
+
+    <!-- 버전: 릴리스 시 -p:Version=x.y.z 로 덮어씀 -->
+    <Version>1.0.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>WSL</Product>
+    <AssemblyTitle>WSL — Workspace Launcher</AssemblyTitle>
+    <Company>grasion</Company>
+    <Description>WSL (Workspace Launcher) — 창 배치 스냅샷 저장 및 원클릭 복원</Description>
+    <Copyright>Copyright © 2026 grasion</Copyright>
+
+    <!-- WinForms 는 트레이 아이콘에만 사용하고 DPI 는 WPF 매니페스트로 설정 -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="0.0.1298" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\coffee_qr.png" />
+  </ItemGroup>
+
+</Project>
